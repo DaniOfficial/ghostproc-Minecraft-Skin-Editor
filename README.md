@@ -1,6 +1,6 @@
-# ghostproc · Minecraft Skin Editor
+# ghostproc · Skin Studio
 
-**[▶ Open the Skin Studio](https://daniofficial.github.io/ghostproc-Minecraft-Skin-Editor/)** · [English](#english) · [Deutsch](#deutsch)
+**[▶ Open the Skin Studio](https://daniofficial.github.io/ghostproc-Skin-Studio/)** · [English](#english) · [Deutsch](#deutsch)
 
 A browser-based skin studio for Minecraft: Java Edition. Mix hoods, masks, eyes, outfits, chest symbols and particles, choose wide or slim arms and a male or female body, recolor everything in 19 palettes and save the result as a 64×64 PNG.
 
@@ -35,7 +35,7 @@ A browser-based skin studio for Minecraft: Java Edition. Mix hoods, masks, eyes,
 
 ### How to use your skin
 
-1. Open the [Skin Studio](https://daniofficial.github.io/ghostproc-Minecraft-Skin-Editor/).
+1. Open the [Skin Studio](https://daniofficial.github.io/ghostproc-Skin-Studio/).
 2. Pick a preset from the gallery or build your own in the editor, then click **Save PNG**.
 3. In the Minecraft Launcher, select **Minecraft: Java Edition** and open the **Skins** tab.
 4. Add a new skin, choose the PNG and set the matching player model: **Classic** for wide arms, **Slim** for slim arms.
@@ -54,7 +54,7 @@ Download `index.html` and open it in any modern browser. Nothing else is needed,
 
 - ✅ You may use, share and modify it for **non-commercial** purposes.
 - ❌ **Commercial use is not permitted.**
-- ✍️ If you share it or publish a modified version, you must **credit DaniOfficial**, link to [this repository](https://github.com/DaniOfficial/ghostproc-Minecraft-Skin-Editor), link to the license and state what you changed.
+- ✍️ If you share it or publish a modified version, you must **credit DaniOfficial**, link to [this repository](https://github.com/DaniOfficial/ghostproc-Skin-Studio), link to the license and state what you changed.
 
 Using skins made with the studio on your own Minecraft account is of course fine.
 
@@ -85,7 +85,7 @@ Using skins made with the studio on your own Minecraft account is of course fine
 
 ### So nutzt du deinen Skin
 
-1. Das [Skin Studio](https://daniofficial.github.io/ghostproc-Minecraft-Skin-Editor/) öffnen.
+1. Das [Skin Studio](https://daniofficial.github.io/ghostproc-Skin-Studio/) öffnen.
 2. Eine Vorlage aus der Galerie wählen oder im Editor einen eigenen Skin bauen, dann auf **PNG speichern** klicken.
 3. Im Minecraft Launcher **Minecraft: Java Edition** wählen und den Reiter **Skins** öffnen.
 4. Einen neuen Skin anlegen, die PNG auswählen und das passende Spielermodell einstellen: **Klassisch** für breite Arme, **Schlank** für schmale Arme.
@@ -104,7 +104,7 @@ Using skins made with the studio on your own Minecraft account is of course fine
 
 - ✅ Du darfst es für **nicht-kommerzielle** Zwecke nutzen, teilen und verändern.
 - ❌ **Kommerzielle Nutzung ist nicht erlaubt.**
-- ✍️ Wenn du es weitergibst oder eine veränderte Version veröffentlichst, musst du **DaniOfficial nennen**, auf [dieses Repository](https://github.com/DaniOfficial/ghostproc-Minecraft-Skin-Editor) verlinken, auf die Lizenz verweisen und angeben, was du geändert hast.
+- ✍️ Wenn du es weitergibst oder eine veränderte Version veröffentlichst, musst du **DaniOfficial nennen**, auf [dieses Repository](https://github.com/DaniOfficial/ghostproc-Skin-Studio) verlinken, auf die Lizenz verweisen und angeben, was du geändert hast.
 
 Skins aus dem Studio für deinen eigenen Minecraft-Account zu verwenden, ist natürlich erlaubt.
 
