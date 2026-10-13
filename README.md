@@ -48,6 +48,16 @@ A browser-based skin studio for Minecraft: Java Edition. Mix hoods, masks, eyes,
 
 Download `index.html` and open it in any modern browser. Nothing else is needed, it also works offline.
 
+### License
+
+© 2026 DaniOfficial. This project is licensed under **[CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)** (see [LICENSE](LICENSE)).
+
+- ✅ You may use, share and modify it for **non-commercial** purposes.
+- ❌ **Commercial use is not permitted.**
+- ✍️ If you share it or publish a modified version, you must **credit DaniOfficial**, link to [this repository](https://github.com/DaniOfficial/ghostproc-Minecraft-Skin-Editor), link to the license and state what you changed.
+
+Using skins made with the studio on your own Minecraft account is of course fine.
+
 ---
 
 ## Deutsch
@@ -87,6 +97,16 @@ Download `index.html` and open it in any modern browser. Nothing else is needed,
 ### Lokal starten
 
 `index.html` herunterladen und in einem aktuellen Browser öffnen. Mehr braucht es nicht, das funktioniert auch offline.
+
+### Lizenz
+
+© 2026 DaniOfficial. Dieses Projekt steht unter der Lizenz **[CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/deed.de)** (siehe [LICENSE](LICENSE)).
+
+- ✅ Du darfst es für **nicht-kommerzielle** Zwecke nutzen, teilen und verändern.
+- ❌ **Kommerzielle Nutzung ist nicht erlaubt.**
+- ✍️ Wenn du es weitergibst oder eine veränderte Version veröffentlichst, musst du **DaniOfficial nennen**, auf [dieses Repository](https://github.com/DaniOfficial/ghostproc-Minecraft-Skin-Editor) verlinken, auf die Lizenz verweisen und angeben, was du geändert hast.
+
+Skins aus dem Studio für deinen eigenen Minecraft-Account zu verwenden, ist natürlich erlaubt.
 
 ---
 
