@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ghostproc – Skin Studio (Minecraft Java, 64×64 Classic &amp; Slim)</title>
+<meta name="description" content="ghostproc Skin Studio: Minecraft Java skins (64×64, Classic) im Browser kombinieren und als PNG speichern. Combine Minecraft Java skins in your browser and save them as PNG.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8' shape-rendering='crispEdges'%3E%3Crect width='8' height='8' fill='%231A1A1D'/%3E%3Crect x='1' y='4' width='2' height='1' fill='%23fff'/%3E%3Crect x='5' y='4' width='2' height='1' fill='%23fff'/%3E%3Crect x='0' y='6' width='8' height='2' fill='%239D00FF'/%3E%3C/svg%3E">
+<style>
+  :root { --bg:#0d0c10; --panel:#16151a; --line:#2a2632; --text:#d9d4e3; --dim:#8c859a; --acc:#9D00FF; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.5 system-ui, "Segoe UI", sans-serif; }
+  main { max-width:1240px; margin:0 auto; padding:28px 20px 56px; }
+  header.top { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; }
+  h1 { font-size:2.1rem; margin:0 0 4px; text-shadow:2px 0 #E000FF, -2px 0 #9D00FF; }
+  h2 { font-size:1.25rem; margin:36px 0 12px; }
+  p.sub { margin:0 0 22px; color:var(--dim); max-width:74ch; }
+  .lang { display:flex; border:1px solid var(--line); border-radius:4px; overflow:hidden; margin-top:8px; }
+  .lang button { font:inherit; font-size:.85rem; font-weight:600; color:var(--dim); background:transparent; border:0; padding:5px 12px; cursor:pointer; }
+  .lang button[aria-pressed="true"] { color:#0d0c10; background:var(--acc); }
+  canvas { image-rendering:pixelated; image-rendering:crisp-edges; display:block; }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:18px; }
+  /* Editor */
+  .studio { display:grid; grid-template-columns:minmax(0,1.25fr) minmax(280px,.75fr); gap:20px; border-top:3px solid var(--acc); }
+  @media (max-width:860px){ .studio{ grid-template-columns:1fr; } }
+  .stage { display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; }
+  .stage figure { margin:0; text-align:center; color:var(--dim); font-size:.82rem; }
+  .stage canvas.v { height:256px; background:#3a3742; border-radius:4px; }
+  .texwrap { margin-top:14px; display:flex; gap:14px; align-items:flex-start; flex-wrap:wrap; }
+  #tex { width:256px; height:256px; border-radius:4px; background:repeating-conic-gradient(#2b2930 0 25%, #222026 0 50%) 0 0/16px 16px; }
+  .controls { display:grid; grid-template-columns:auto 1fr; gap:10px 12px; align-items:center; align-content:start; }
+  .controls label { color:var(--dim); font-size:.9rem; }
+  select, input[type=text] { font:inherit; color:var(--text); background:#0f0e13; border:1px solid var(--line); border-radius:4px; padding:6px 8px; width:100%; }
+  input[type=range] { width:100%; accent-color:var(--acc); }
+  .pals { display:flex; gap:6px; flex-wrap:wrap; }
+  .pal { width:28px; height:28px; border-radius:50%; border:2px solid transparent; cursor:pointer; padding:0;
+         background:linear-gradient(135deg, var(--a) 50%, var(--b) 50%); }
+  .pal[aria-pressed="true"] { border-color:#fff; }
+  .pal.custom { background:conic-gradient(#ff1744, #ffb300, #39ff14, #00e5ff, #6a00ff, #ff00c8, #ff1744); }
+  .palname { grid-column:2; margin-top:-4px; color:var(--text); font-size:.85rem; }
+  details.cust { grid-column:1 / -1; border:1px solid var(--line); border-radius:4px; padding:8px 10px; }
+  details.cust summary { cursor:pointer; color:var(--dim); font-size:.9rem; }
+  .cgrid { display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-top:10px; }
+  .cgrid label { display:flex; flex-direction:column; gap:3px; font-size:.78rem; color:var(--dim); }
+  .cgrid input[type=color] { width:100%; height:30px; border:1px solid var(--line); border-radius:4px; background:#0f0e13; padding:2px; cursor:pointer; }
+  .galbar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:-4px 0 14px; color:var(--dim); font-size:.9rem; }
+  .galbar select { width:auto; min-width:240px; }
+  .galbar select.narrow { min-width:0; }
+  .btns { grid-column:1 / -1; display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
+  button.main, button.sec { font:inherit; border-radius:4px; padding:9px 14px; cursor:pointer; font-weight:600; }
+  button.main { color:#0d0c10; background:var(--acc); border:0; }
+  button.sec { color:var(--text); background:transparent; border:1px solid var(--line); }
+  button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-visible { outline:2px solid #fff; outline-offset:2px; }
+  .seedrow { display:flex; gap:6px; }
+  .seedrow input { flex:1; }
+  .small { color:var(--dim); font-size:.82rem; }
+  /* Galerie */
+  .cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:14px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-top:3px solid var(--cacc); border-radius:6px; padding:14px; display:flex; flex-direction:column; }
+  .card h3 { margin:0; font-size:1.05rem; color:var(--cacc); }
+  .card p { margin:2px 0 10px; color:var(--dim); font-size:.85rem; flex:1; }
+  .card .views { display:flex; gap:8px; align-items:flex-end; }
+  .card canvas { height:150px; background:#3a3742; border-radius:4px; }
+  .card .row { display:flex; gap:8px; margin-top:10px; }
+  .card button { font:inherit; font-size:.88rem; border-radius:4px; padding:6px 10px; cursor:pointer; }
+  .card button.edit { background:transparent; color:var(--text); border:1px solid var(--line); }
+  .card button.dl { background:var(--cacc); color:#0d0c10; border:0; font-weight:600; }
+  .tag { font-size:.75rem; color:var(--dim); border:1px solid var(--line); border-radius:3px; padding:0 6px; margin-left:6px; vertical-align:2px; }
+  /* Anleitung + Fußzeile */
+  .howto { margin-top:36px; max-width:74ch; color:var(--dim); font-size:.9rem; }
+  .howto h2 { color:var(--text); margin-top:0; }
+  .howto ol { padding-left:1.3em; margin:0; }
+  footer { margin-top:40px; padding-top:14px; border-top:1px solid var(--line); color:var(--dim); font-size:.8rem; }
+</style>
+</head>
+<body>
+<main>
+  <header class="top">
+    <div>
+      <h1>ghostproc · Skin Studio</h1>
+      <p class="sub" data-i18n="sub"></p>
+    </div>
+    <div class="lang" role="group" aria-label="Sprache / Language">
+      <button type="button" data-lang="de" lang="de">DE</button>
+      <button type="button" data-lang="en" lang="en">EN</button>
+    </div>
+  </header>
+
+  <section class="panel studio" id="studio">
+    <div>
+      <div class="stage">
+        <figure><canvas class="v" id="vFront" width="16" height="32"></canvas><figcaption data-i18n="front"></figcaption></figure>
+        <figure><canvas class="v" id="vBack" width="16" height="32"></canvas><figcaption data-i18n="back"></figcaption></figure>
+        <figure><canvas class="v" id="vRight" width="8" height="32"></canvas><figcaption data-i18n="right"></figcaption></figure>
+        <figure><canvas class="v" id="vLeft" width="8" height="32"></canvas><figcaption data-i18n="left"></figcaption></figure>
+      </div>
+      <div class="texwrap">
+        <canvas id="tex" width="64" height="64"></canvas>
+        <div class="small"><span data-i18n="texCap"></span><br><label><input type="checkbox" id="ovT" checked> <span data-i18n="showOverlay"></span></label></div>
+      </div>
+    </div>
+    <div class="controls">
+      <label for="preset" data-i18n="preset"></label><select id="preset"></select>
+      <label for="arms" data-i18n="arms"></label><select id="arms"></select>
+      <label for="body" data-i18n="body"></label><select id="body"></select>
+      <label data-i18n="palette"></label><div class="pals" id="pals"></div>
+      <span class="palname" id="palName"></span>
+      <details class="cust" id="custBox"><summary data-i18n="mixPal"></summary>
+        <div class="cgrid">
+          <label><span data-i18n="cAccent"></span><input type="color" data-k="P"></label>
+          <label><span data-i18n="cHigh"></span><input type="color" data-k="M"></label>
+          <label><span data-i18n="cShadow"></span><input type="color" data-k="V"></label>
+          <label><span data-i18n="cFabric"></span><input type="color" data-k="A"></label>
+          <label><span data-i18n="cFabricD"></span><input type="color" data-k="D"></label>
+          <label><span data-i18n="cSkin"></span><input type="color" data-k="S"></label>
+        </div>
+        <div class="small" style="margin-top:8px" data-i18n="custNote"></div>
+      </details>
+      <label for="symbol" data-i18n="symbol"></label><select id="symbol"></select>
+      <label for="mask" data-i18n="mask"></label><select id="mask"></select>
+      <label for="hood" data-i18n="hood"></label><select id="hood"></select>
+      <label for="outfit" data-i18n="outfit"></label><select id="outfit"></select>
+      <label for="eyes" data-i18n="eyes"></label><select id="eyes"></select>
+      <label for="particles" data-i18n="particles"></label><select id="particles"></select>
+      <label for="armD" data-i18n="density"></label><input type="range" id="armD" min="0" max="0.9" step="0.01">
+      <label for="torso" data-i18n="torso"></label><input type="range" id="torso" min="0" max="0.6" step="0.01">
+      <label for="seed">Seed</label><div class="seedrow"><input type="text" id="seed" spellcheck="false"><button class="sec" id="reroll" type="button" data-i18n="reroll" data-i18n-title="rerollTitle"></button></div>
+      <label for="fname" data-i18n="fname"></label><input type="text" id="fname" spellcheck="false">
+      <div class="btns"><button class="main" id="dl" type="button" data-i18n="savePng"></button><button class="sec" id="randAll" type="button" data-i18n="randAll"></button></div>
+      <div class="btns small" data-i18n="seedNote"></div>
+    </div>
+  </section>
+
+  <h2 data-i18n="allSkins"></h2>
+  <div class="galbar">
+    <label for="galPal" data-i18n="galShow"></label><select id="galPal"></select>
+    <label for="galArms" data-i18n="galArms"></label><select id="galArms" class="narrow"></select>
+    <label for="galBody" data-i18n="galBody"></label><select id="galBody" class="narrow"></select>
+  </div>
+  <div class="cards" id="cards"></div>
+
+  <section class="howto">
+    <h2 data-i18n="howTitle"></h2>
+    <ol>
+      <li data-i18n="how1"></li>
+      <li data-i18n="how2"></li>
+      <li data-i18n="how3"></li>
+    </ol>
+  </section>
+
+  <footer><span data-i18n="disclaimer"></span></footer>
+</main>
+<script>
+// ghostproc – Minecraft Java Skin, 64x64, Classic (Steve-Arme, 4 px) oder Slim (Alex-Arme, 3 px)
+// Liefert RGBA-Pixel (Uint8ClampedArray, 64*64*4). Deterministisch über Seed.
+// 6x5-Symbole für die Brust (X = Akzent, H = Highlight, W = Weiß, . = Schwarz)
+const GLYPHS = {
+  ghost:  ['.XXXX.', 'XWXXWX', 'XXXXXX', 'XXXXXX', 'X.XX.X'],
+  skull:  ['.XXXX.', 'XWXXWX', 'XXXXXX', '.XHHX.', '.X..X.'],
+  binary: ['.X..X.', 'XX.X.X', '.X.X.X', '.X.X.X', 'XXX.X.'],
+  eye:    ['......', '.XXXX.', 'XHWWHX', '.XXXX.', '......'],
+  // --- neue Symbole (v3)
+  heart:  ['HX..XX', 'XXXXXX', 'XXXXXX', '.XXXX.', '..XX..'],
+  bolt:   ['...HX.', '..XX..', '.XXXX.', '..XX..', '.X....'],
+  lambda: ['XX....', '..X...', '..XX..', '.X..X.', 'X....H'],
+  hash:   ['.X..X.', 'XXXXXX', '.X..X.', 'XXXXXX', '.X..X.'],
+  bug:    ['X....X', '.XHHX.', 'XXXXXX', '.XXXX.', 'X.XX.X'],
+  warning:['..XX..', '.XWWX.', '.XWWX.', 'XXXXXX', 'XXWWXX'],
+  lock:   ['.XXXX.', '.X..X.', 'XXXXXX', 'XHWWXX', 'XXXXXX'],
+  moon:   ['..XXX.', '.XX...', '.XH...', '.XX...', '..XXX.'],
+  crown:  ['X.XX.X', 'XXXXXX', 'XWXXWX', 'XXXXXX', 'HHHHHH']
+};
+function buildGhostprocSkin(opts) {
+  opts = opts || {};
+  const seed = opts.seed;
+  const col = opts.colors || {};
+  const O = {
+    symbol: opts.symbol || 'prompt',         // prompt | none | ghost | skull | binary | eye | heart | bolt | lambda | hash | bug | warning | lock | moon | crown
+    mask: opts.mask || 'tech',               // tech | breather | glitch | none | bandana | grin | skull | gasmask | fangs | censor | stitch
+    hood: opts.hood || 'deep',               // deep | trim | down | ears | horns | stripe | circuit | beanie | none
+    outfit: opts.outfit || 'hoodie',         // hoodie | coat | harness | vest | armor | scarf | tracksuit | labcoat
+    particles: opts.particles || 'dissolve', // dissolve | drip | none | sparks | rain | flames | scan | blocks | aura
+    eyes: opts.eyes || 'solid',              // solid | tears | neon | red | void | iris | visor | glitch | cyclops
+    arms: opts.arms === 'slim' ? 'slim' : 'classic', // classic (Steve, 4 px) | slim (Alex, 3 px)
+    body: opts.body === 'female' ? 'female' : 'male' // male | female (lange Haare, Wimpern, Taille)
+  };
+  const W = 64, H = 64;
+  const px = new Uint8ClampedArray(W * H * 4); // alles transparent
+
+  // --- Seeded PRNG (mulberry32) -> jedes Mal identisches Ergebnis
+  let s = (seed === undefined ? 0x60570C : seed) >>> 0;
+  const rnd = () => {
+    s = (s + 0x6D2B79F5) | 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+
+  // --- Palette (Vorgabe)
+  const C = {
+    A: hex(col.A || '#1A1A1D'), // Anthrazit
+    D: hex(col.D || '#121214'), // extremes Dunkelgrau
+    P: hex(col.P || '#9D00FF'), // Akzent (Standard: Neon-Lila)
+    M: hex(col.M || '#E000FF'), // Glitch-Highlight (Standard: Magenta)
+    V: hex(col.V || '#510087'), // Schatten-Akzent (Standard: Violett)
+    W: hex(col.W || '#FFFFFF'), // Augen
+    K: hex('#000000'),          // Pechschwarz (Kapuzenschatten)
+    S: hex(col.S || '#57525F'), // Geister-Haut
+    B: hex(col.B || '#0A0A0C'), // Boot-/Handschuh-Schwarz
+    N: hex('#D6D0C4'),          // Knochen (Schädel-Maske, Reißzähne, Hörner)
+    L: hex('#DCDCE2'),          // Laborkittel-Weiß
+    R: hex('#FF2020')           // rot glühende Augen
+  };
+  C.W.eye = true; C.R.eye = true;
+  const NS = col.noise ?? 1;   // Rausch-Stärke (helle Paletten brauchen weniger)
+
+  // Rauschen: additiv bei dunklen Tönen, relativ bei hellen. g = Verlauf (+heller / -dunkler)
+  // rel = relativer Rauschanteil (helle Materialien wie Knochen/Kittel nutzen weniger)
+  const tone = (c, amt = 5, g = 0, rel = 0.09) => {
+    if (c.eye || c === C.K) return c; // Augen & Schatten bleiben exakt
+    return c.map(v => {
+      const a = Math.max(amt, v * rel) * NS;
+      return Math.max(0, Math.min(255, Math.round(v + (rnd() * 2 - 1) * a + g)));
+    });
+  };
+  const pick = (...cs) => cs[Math.floor(rnd() * cs.length)];
+
+  const set = (x, y, c) => {
+    const i = (y * W + x) * 4;
+    px[i] = c[0]; px[i + 1] = c[1]; px[i + 2] = c[2]; px[i + 3] = 255;
+  };
+
+  // Box-UV-Layout eines Minecraft-Quaders (u,v = Ursprung; w = Breite, h = Höhe, d = Tiefe)
+  const box = (u, v, w, h, d) => ({
+    top:    [u + d,         v,     w, d],
+    bottom: [u + d + w,     v,     w, d],
+    right:  [u,             v + d, d, h],
+    front:  [u + d,         v + d, w, h],
+    left:   [u + d + w,     v + d, d, h],
+    back:   [u + 2 * d + w, v + d, w, h]
+  });
+  // fn(x, y, w, h) -> Farbe oder null (= transparent, nur für Overlays)
+  const paint = (rect, fn) => {
+    const [x0, y0, w, h] = rect;
+    for (let y = 0; y < h; y++)
+      for (let x = 0; x < w; x++) {
+        const c = fn(x, y, w, h);
+        if (c) set(x0 + x, y0 + y, c);
+      }
+  };
+  const vgrad = (y, h, span = 6) => span / 2 - (y / Math.max(1, h - 1)) * span; // oben hell, unten dunkel
+  const SIDES = ['front', 'right', 'back', 'left'];
+  const hasMask = O.mask !== 'none' && O.mask !== 'stitch';          // "stitch" ist aufgenähte Haut, kein Riemen
+  const AW = O.arms === 'slim' ? 3 : 4;                               // Armbreite im Texturlayout
+  const fem = O.body === 'female';
+  const lashes = ['solid', 'tears', 'neon', 'red', 'iris', 'glitch'].includes(O.eyes);
+  const hoodUp = ['deep', 'trim', 'ears', 'horns', 'stripe', 'circuit'].includes(O.hood);
+
+  // =========================================================
+  // KOPF – Basis (0,0)-(32,16)
+  // =========================================================
+  const head = box(0, 0, 8, 8, 8);
+  const hair = () => tone(pick(C.A, C.D, C.D), 5);
+  const femHair = (x = 0, g = 0) => tone(x % 3 === 1 ? C.V : C.D, 4, g); // lange Haare: senkrechte Strähnen im Schattenton
+  const skin = (g = 0) => tone(C.S, 4, g);
+  const mask = (y) => tone(y === 6 ? C.A : C.D, 4, y === 6 ? 3 : 0);
+  const bone = (g = 0) => tone(C.N, 6, g, 0.03);
+
+  // Augenzeile (y = 4). "solid" und "tears" bleiben exakt wie in v2.
+  const eyePix = x => {
+    const isEye = [1, 2, 5, 6].includes(x);
+    switch (O.eyes) {
+      case 'neon':    return isEye ? C.M : skin(-2);
+      case 'red':     return isEye ? C.R : skin(-2);
+      case 'void':    return isEye ? C.K : skin(-2);
+      case 'iris':    return (x === 2 || x === 5) ? tone(C.P, 3) : isEye ? C.W : skin(-2);
+      case 'visor':   return isEye ? C.M : tone(C.P, 3);
+      case 'glitch':  return (x === 1 || x === 2) ? C.W : x === 5 ? C.M : x === 6 ? tone(C.P, 3) : skin(-2);
+      case 'cyclops': return (x === 3 || x === 4) ? C.W : (x === 2 || x === 5) ? C.K : skin(-2);
+      default:        return isEye ? C.W : skin(-2);
+    }
+  };
+  // Pixel-Zensur: 4 Mosaik-Blöcke à 2×2 (rnd nur, wenn gewählt)
+  const censorCols = O.mask === 'censor' ? [10, -6, 4, -12].map(g => tone(pick(C.A, C.V, C.S), 4, g)) : null;
+
+  paint(head.top, (x, y) => (x === 5 && y >= 5) || (x === 6 && y === 7) ? tone(C.V, 6) : hair());
+  paint(head.bottom, () => tone(C.D, 3));
+  paint(head.front, (x, y) => {
+    if (y <= 1) return (x === 5 && y === 0) || (x === 6 && y <= 1) ? tone(C.V, 6) : hair();
+    if (y === 2) return [0, 1, 2, 6, 7].includes(x) ? hair() : skin(-6); // asymmetrischer Pony
+    if (fem && (x === 0 || x === 7) && y <= 5 && !(O.eyes === 'visor' && y === 4)) return femHair(x); // Strähnen am Gesicht
+    if (y === 3) return O.eyes === 'glitch' && x === 6 ? C.M : fem && lashes && (x === 1 || x === 6) ? C.K : skin(-8); // Brauenschatten / Wimpern
+    if (y === 4) return eyePix(x);                                        // Herobrine-Augen
+    if (y === 5) return O.eyes === 'tears' && (x === 1 || x === 6) ? tone(C.P, 3)
+                      : O.eyes === 'glitch' && x === 5 ? tone(C.V, 3) : skin(0);
+    if (!hasMask) {
+      if (O.eyes === 'tears' && y === 6 && (x === 1 || x === 6)) return tone(C.V, 4);
+      if (O.mask === 'stitch') {                                          // zugenähter Mund
+        if (y === 6) return x >= 1 && x <= 6 ? (x % 2 === 0 ? tone(C.V, 3) : C.K) : skin(-2);
+        return (x === 2 || x === 4) ? tone(C.V, 3, -6) : skin(-6);
+      }
+      return y === 6 ? ((x === 3 || x === 4) ? skin(-14) : skin(-2)) : skin(-6);
+    }
+    if (O.mask === 'breather') {
+      if (x === 0 || x === 7) return skin(y === 6 ? -4 : -6);
+      if (x === 1 || x === 6) return y === 6 ? tone(C.M, 3) : tone(C.V, 4);   // Filter mit LED
+      if (y === 7 && (x === 3 || x === 4)) return C.K;
+      return tone(C.D, 3, y === 6 ? 2 : -2);
+    }
+    if (O.mask === 'glitch') return y === 6 ? tone(pick(C.P, C.M, C.V, C.P), 3) : (rnd() < 0.5 ? C.K : tone(C.V, 4));
+    if (O.mask === 'bandana') return (x + y) % 3 === 0 ? tone(C.P, 3) : tone(C.V, 4, y === 6 ? 2 : -4);
+    if (O.mask === 'grin') {                                              // LED-Grinsen
+      if (y === 6) return (x === 1 || x === 6) ? C.M : tone(C.D, 3);
+      return (x >= 2 && x <= 5) ? tone(C.P, 3) : tone(C.D, 3, -2);
+    }
+    if (O.mask === 'skull') {                                             // Knochen-Kiefer
+      if (y === 6) return (x === 0 || x === 7) ? bone(-14) : x % 2 ? bone() : C.K;
+      return (x === 0 || x === 7) ? bone(-24) : bone(-8);
+    }
+    if (O.mask === 'gasmask') {                                           // Gasmaske mit Filter
+      if (y === 6) return (x === 0 || x === 7) ? mask(6) : (x === 3 || x === 4) ? tone(C.V, 4) : tone(C.D, 3, 4);
+      if (x === 3 || x === 4) return x === 3 ? C.M : tone(C.P, 3);
+      return (x === 2 || x === 5) ? C.K : mask(7);
+    }
+    if (O.mask === 'fangs') {                                             // Reißzähne
+      if (y === 6) return (x === 1 || x === 6) ? tone(C.P, 3) : tone(C.D, 3, 2);
+      return (x === 2 || x === 5) ? bone() : C.K;
+    }
+    if (O.mask === 'censor') return censorCols[x >> 1];
+    if (y === 6) return x === 6 ? tone(C.P, 4) : mask(6);                 // Masken-LED
+    return [2, 4].includes(x) ? C.K : [3, 5].includes(x) ? tone(C.V, 4) : mask(7); // Lüftungsschlitze
+  });
+  const headSide = fe => (x, y) => {           // fe = Spalte an der Gesichtskante
+    const dist = Math.abs(x - fe);
+    if (y <= 2 || dist >= 4) return y === 6 && dist >= 4 && hasMask ? C.K : hair();
+    if (fem && dist >= 2 && y >= 3 && (y <= 5 || !hasMask) && !(O.eyes === 'visor' && y === 4)) return femHair(x);
+    if (y >= 6) return !hasMask ? skin(-6 - dist * 2) : y === 6 && dist === 3 ? C.K : mask(y);
+    if (O.eyes === 'visor' && y === 4) return tone(C.P, 3, -dist * 6);   // Visier läuft um den Kopf
+    return skin(-4 - dist * 2);
+  };
+  paint(head.right, headSide(7));
+  paint(head.left, headSide(0));
+  paint(head.back, (x, y) => {
+    if (y === 6 && hasMask) return C.K;                        // Masken-Riemen
+    if (O.eyes === 'visor' && y === 4) return tone(C.V, 3);    // Visier-Band hinten
+    if (x === 2 && y <= 4) return tone(y % 2 ? C.P : C.V, 5);  // lila Strähne
+    return hair();
+  });
+
+  // =========================================================
+  // KOPF – Overlay / Kapuze (32,0)-(64,16)
+  // =========================================================
+  const hood = box(32, 0, 8, 8, 8);
+  const fabric = (g = 0) => tone(pick(C.A, C.A, C.D), 5, g);
+  if (hoodUp) {
+  const rim = (g) => O.hood === 'trim' ? tone(C.P, 3, -6) : fabric(g);
+  paint(hood.top, (x, y) => (x === 3 || x === 4) ? tone(C.D, 3, -2) : fabric(2));
+  paint(hood.front, (x, y) => {
+    if (y === 0) return (x === 1 || x === 6) ? tone(O.hood === 'trim' ? C.M : C.V, 5) : rim(2);  // Kapuzenrand
+    if (x === 0 || x === 7) return rim(-y);
+    if (y === 1) return C.K;                                      // Schattenkante über Stirn
+    if (y <= 3 && (x === 1 || x === 6)) return C.K;               // Schatten über den Augen
+    if (y === 2 && (x === 2 || x === 5)) return C.K;
+    return null;                                                  // Gesicht bleibt frei
+  });
+  const hoodSide = fe => (x, y) => {
+    const dist = Math.abs(x - fe);
+    if (dist === 0) return tone(C.D, 3, -3);                      // Innenfalte am Rand
+    if (dist === 1 && y >= 2 && y <= 5) return tone(C.V, 4, -4);  // Paspel
+    return fabric(vgrad(y, 8, 5));
+  };
+  paint(hood.right, hoodSide(7));
+  paint(hood.left, hoodSide(0));
+  paint(hood.back, (x, y) => {
+    if (x === 3 || x === 4) return tone(C.D, 3, -2);              // Mittelnaht
+    if ((x === 6 && y === 5) || (x === 1 && y === 6)) return tone(C.P, 4);
+    return fabric(vgrad(y, 8, 6));
+  });
+  // hood.bottom bleibt transparent (offene Kapuze)
+
+  // --- Zusatz-Details der neuen Kapuzen (werden über die Basis-Kapuze gemalt)
+  if (O.hood === 'ears') {                                        // Katzenohren an den vorderen Ecken
+    paint(hood.top, (x, y) => y >= 3 && (x <= 1 || x >= 6) ? ((x === 1 || x === 6) && y >= 4 && y <= 6 ? tone(C.P, 3) : tone(C.A, 4, 8)) : null);
+    paint(hood.front, (x, y) => y === 0 && (x <= 1 || x >= 6) ? ((x === 1 || x === 6) ? tone(C.P, 3) : tone(C.A, 4, 10)) : null);
+    [['right', 7], ['left', 0]].forEach(([k, fe]) => paint(hood[k], (x, y) => y === 0 && Math.abs(x - fe) <= 2 ? tone(C.A, 4, 8) : null));
+  }
+  if (O.hood === 'horns') {                                       // Hörner aus Knochen, Spitze in Akzentfarbe
+    paint(hood.top, (x, y) => (x === 1 || x === 6) && y >= 3 ? (y <= 4 ? tone(C.P, 3) : bone((y - 7) * 8)) : (x === 0 || x === 7) && y >= 5 ? bone(-20) : null);
+    paint(hood.front, (x, y) => y === 0 && (x === 1 || x === 6) ? bone() : null);
+  }
+  if (O.hood === 'stripe') {                                      // Rennstreifen über die Mitte
+    paint(hood.top, (x) => (x === 3 || x === 4) ? tone(C.P, 3) : null);
+    paint(hood.front, (x, y) => y === 0 && (x === 3 || x === 4) ? tone(C.M, 3) : null);
+    paint(hood.back, (x, y) => (x === 3 || x === 4) ? tone(C.P, 3, -y) : null);
+  }
+  if (O.hood === 'circuit') {                                     // Leiterbahnen mit Lötpunkten
+    const trace = (on, nodes) => (x, y) => nodes.some(([a, b]) => a === x && b === y) ? C.M : on(x, y) ? tone(C.P, 3, -6) : null;
+    paint(hood.back, trace((x, y) => (y === 2 && x >= 1 && x <= 3) || (x === 3 && y >= 2 && y <= 5) || (y === 5 && x >= 3 && x <= 6) || (x === 5 && y <= 2), [[1, 2], [6, 5], [5, 0]]));
+    paint(hood.right, trace((x, y) => (y === 4 && x >= 1 && x <= 5) || (x === 1 && y >= 4 && y <= 6), [[5, 4], [1, 6]]));
+    paint(hood.left, trace((x, y) => (y === 4 && x >= 2 && x <= 6) || (x === 6 && y >= 4 && y <= 6), [[2, 4], [6, 6]]));
+    paint(hood.top, trace((x, y) => (x === 2 && y >= 1 && y <= 5), [[2, 1], [2, 5]]));
+  }
+  }
+  if (O.hood === 'beanie') {                                      // Strickmütze mit Bommel und Umschlag
+    const knit = (y) => tone(pick(C.V, C.V, C.D), 4, y % 2 ? -3 : 2);
+    paint(hood.top, (x, y) => (x === 3 || x === 4) && (y === 3 || y === 4) ? C.M : knit(y));
+    paint(hood.front, (x, y) => y === 0 ? knit(y) : y === 1 ? tone(C.P, 3) : null);
+    paint(hood.right, (x, y) => y <= 1 ? knit(y) : y === 2 ? tone(C.P, 3) : null);
+    paint(hood.left, (x, y) => y <= 1 ? knit(y) : y === 2 ? tone(C.P, 3) : null);
+    paint(hood.back, (x, y) => y <= 2 ? knit(y) : y === 3 ? tone(C.P, 3) : null);
+  }
+
+  if (fem && !hoodUp) {                                           // lange Haare im Overlay (ohne Kapuze)
+    const cap = O.hood === 'beanie' ? { side: 3, back: 4 } : { side: 0, back: 0 };
+    if (O.hood !== 'beanie') {
+      paint(hood.top, (x) => femHair(x, 2));
+      paint(hood.front, (x, y) => y === 0 || ((x === 0 || x === 7) && y <= 5) ? femHair(x, 2) : null);
+    }
+    [['right', 7], ['left', 0]].forEach(([k, fe]) => paint(hood[k], (x, y) => y >= cap.side && Math.abs(x - fe) >= 2 ? femHair(x) : null));
+    paint(hood.back, (x, y) => y >= cap.back ? (x === 2 ? tone(y % 2 ? C.P : C.V, 5) : femHair(x)) : null); // lila Strähne wie am Kopf
+  }
+
+  // =========================================================
+  // TORSO – Basis (16,16)-(40,32)
+  // =========================================================
+  const body = box(16, 16, 8, 12, 4);
+  const hoodie = (y, h) => tone(pick(C.A, C.A, C.D), 5, vgrad(y, h, 6));
+  const belt = x => (x === 3 || x === 4) ? tone(x === 3 ? C.P : C.V, 4) : tone(C.B, 3);
+  paint(body.top, () => tone(C.A, 5, 3));
+  paint(body.bottom, () => tone(C.D, 4));
+  paint(body.front, (x, y, w, h) => {
+    if (y === 11) return belt(x);
+    if (y === 0) return (x === 3 || x === 4) ? C.K : (x >= 2 && x <= 5) ? tone(C.D, 3) : hoodie(y, h);
+    const G = GLYPHS[O.symbol];
+    if (G && y >= 3 && y <= 7 && x >= 1 && x <= 6) {
+      const ch = G[y - 3][x - 1];
+      return ch === 'X' ? tone(C.P, 3) : ch === 'H' ? C.M : ch === 'W' ? C.W : C.K;
+    }
+    // Terminal-Panel rows 3..7, cols 1..6
+    if (O.symbol === 'prompt' && y >= 3 && y <= 7 && x >= 1 && x <= 6) {
+      if (y === 3 || y === 7 || x === 1 || x === 6) return tone(C.V, 4, -10);
+      if ((x === 2 && y === 4) || (x === 2 && y === 6)) return tone(C.P, 3);  // ">"
+      if (x === 3 && y === 5) return C.M;                                    // Spitze, heller
+      if (y === 6 && (x === 4 || x === 5)) return tone(C.P, 3);             // "_"
+      return C.K;
+    }
+    if (y === 9 && x >= 1 && x <= 6) return tone(C.D, 3, -3);    // Bauchtasche
+    if (y === 10) return tone(C.A, 4, 4);                         // Bündchen
+    if (fem && (x === 0 || x === 7) && y >= 6 && y <= 9) return tone(C.D, 4, -6); // Taille
+    return hoodie(y, h);
+  });
+  const bodySide = (x, y, w, h) => y === 11 ? tone(C.B, 3) : (x === 2 && y >= 1 && y <= 9) ? tone(C.V, 4, -12) : hoodie(y, h);
+  paint(body.right, bodySide);
+  paint(body.left, bodySide);
+  paint(body.back, (x, y, w, h) => {
+    if (y === 11) return tone(C.B, 3);
+    if (y <= 2 && hoodUp) return tone(C.D, 4, -2);                // aufliegende Kapuze
+    if (x === 5 && y === 7) return tone(C.V, 4);
+    if (fem && (x === 0 || x === 7) && y >= 6 && y <= 9) return tone(C.D, 4, -6); // Taille
+    return hoodie(y, h);
+  });
+
+  // TORSO – Overlay (16,32)-(40,48)
+  const jacket = box(16, 32, 8, 12, 4);
+  paint(jacket.front, (x, y) => (x === 2 || x === 5) && y <= 2 ? (y === 2 ? tone(C.P, 3) : tone(C.V, 4, -6)) : null); // Kordeln
+  if (O.hood === 'down') {    // abgelegte Kapuze: dicker Wulst im Nacken
+    paint(jacket.back, (x, y) => y <= 2 || (y === 3 && x >= 1 && x <= 6) ? (y === 3 ? tone(C.V, 4, -4) : fabric(2 - y)) : null);
+    ['right', 'left'].forEach(k => paint(jacket[k], (x, y) => y <= 1 ? fabric(-2) : null));
+  } else if (hoodUp) {
+    paint(jacket.back, (x, y) => y <= 1 || (y === 2 && x >= 1 && x <= 6) ? fabric(-2) : null); // Kapuzen-Wulst
+  }
+  const coat = (y, h) => tone(pick(C.D, C.D, C.A), 4, vgrad(y, h, 6) - 2);
+  if (O.outfit === 'coat') {
+    paint(jacket.front, (x, y, w, h) => (x <= 1 || x >= 6) ? ((x === 1 || x === 6) ? tone(C.V, 4, -6) : coat(y, h)) : null);
+    ['right', 'left'].forEach(k => paint(jacket[k], (x, y, w, h) => coat(y, h)));
+    paint(jacket.back, (x, y, w, h) => (y >= 8 && (x === 3 || x === 4)) ? null : (O.hood === 'down' && y <= 2) ? fabric(2 - y) : coat(y, h));
+  }
+  if (O.outfit === 'harness') {
+    paint(jacket.front, (x, y) => (x === 0 || x === 7) && y <= 10 ? (y === 2 ? tone(C.M, 3) : C.K) : y === 10 ? (x === 3 || x === 4 ? tone(C.P, 3) : C.K) : null);
+    paint(jacket.back, (x, y) => (y <= 7 && (x === y || x === 7 - y)) ? ((y === 3 || y === 4) && (x === 3 || x === 4) ? tone(C.M, 3) : C.K) : null);
+  }
+
+  // --- neue Outfits (v3). Overlays von Armen/Beinen werden hier gemalt, Partikel kommen später darüber.
+  const ARM_OV = [[box(40, 32, AW, 12, 4), 'right'], [box(48, 48, AW, 12, 4), 'left']];
+  const LEG_OV = [[box(0, 32, 4, 12, 4), 'right'], [box(0, 48, 4, 12, 4), 'left']];
+  if (O.outfit === 'vest') {                                      // Tech-Weste mit Reflexstreifen
+    const vest = (g = 0) => tone(pick(C.D, C.D, C.B), 3, g);
+    paint(jacket.front, (x, y) => {
+      if (y === 0 || y === 11) return null;
+      if (x === 0 || x === 7) return y === 2 ? tone(C.P, 3) : vest();
+      if (y === 8) return (x === 3 || x === 4) ? null : tone(C.V, 4, -4);
+      if (y >= 9 && y <= 10) return (x === 3 || x === 4) ? null : vest(y === 9 ? 4 : 0); // Magazintaschen
+      return null;
+    });
+    ['right', 'left'].forEach(k => paint(jacket[k], (x, y) => y >= 1 && y <= 10 ? (y === 5 ? tone(C.P, 3) : vest()) : null));
+    paint(jacket.back, (x, y) => y >= 3 && y <= 10 ? (y === 5 ? (x % 2 ? C.M : tone(C.P, 3)) : vest()) : null);
+  }
+  if (O.outfit === 'armor') {                                     // Cyber-Panzer: Platten, Schulter-, Knieschützer
+    const plate = (g = 0) => tone(C.D, 3, 10 + g);
+    paint(jacket.front, (x, y) => {
+      if (y === 1) return plate();
+      if (y === 2) return (x === 0 || x === 7) ? plate(-4) : tone(C.P, 3);
+      if (y === 8 || y === 9) return (x === 3 || x === 4) ? null : plate(y === 9 ? -5 : 0);
+      return null;
+    });
+    ['right', 'left'].forEach(k => paint(jacket[k], (x, y) => y >= 1 && y <= 9 ? (y === 5 ? tone(C.D, 3, -4) : plate()) : null));
+    paint(jacket.back, (x, y) => y >= 3 && y <= 9 ? ((x === 3 || x === 4) && y === 6 ? C.M : (x === 3 || x === 4) ? tone(C.V, 4) : plate()) : null);
+    ARM_OV.forEach(([b, outer]) => {
+      paint(b.top, () => plate(4));
+      SIDES.forEach(k => paint(b[k], (x, y) => y <= 2 ? (y === 2 ? (k === outer ? tone(C.P, 3) : plate(-6)) : plate(2)) : (k === outer && (y === 7 || y === 8)) ? plate(-2) : null));
+    });
+    LEG_OV.forEach(([b]) => paint(b.front, (x, y) => y === 5 || y === 6 ? (y === 5 && (x === 1 || x === 2) ? tone(C.P, 3) : plate()) : null));
+  }
+  if (O.outfit === 'scarf') {                                     // Schal mit Diagonalstreifen und Fransen
+    const scarf = (x, y) => tone((x + y) % 4 < 2 ? C.P : C.V, 3);
+    paint(jacket.top, scarf);
+    paint(jacket.front, (x, y) => y <= 1 || (y === 2 && (x === 2 || x === 3)) ? scarf(x, y) : null);
+    ['right', 'left'].forEach(k => paint(jacket[k], (x, y) => y <= 1 ? scarf(x, y) : null));
+    paint(jacket.back, (x, y) => y <= 1 || ((x === 5 || x === 6) && y <= 8) ? scarf(x, y) : (y === 9 && (x === 5 || x === 6)) ? C.M : null);
+  }
+  if (O.outfit === 'tracksuit') {                                 // Trainingsanzug mit Seitenstreifen
+    const strip = (x, y) => (x === 1 || x === 2) && y <= 8 ? tone(x === 1 ? C.P : C.M, 3) : null;
+    ARM_OV.forEach(([b, outer]) => paint(b[outer], strip));
+    LEG_OV.forEach(([b, outer]) => paint(b[outer], strip));
+    ['right', 'left'].forEach(k => paint(jacket[k], (x, y) => (x === 1 || x === 2) && y <= 10 ? tone(x === 1 ? C.P : C.M, 3) : null));
+    paint(jacket.front, (x, y) => y === 0 && (x <= 1 || x >= 6) ? tone(C.P, 3) : (y === 10 && x !== 3 && x !== 4) ? tone(C.V, 4) : null);
+  }
+  if (O.outfit === 'labcoat') {                                   // weißer Laborkittel
+    const lab = (y, h, g = 0) => tone(C.L, 4, vgrad(y, h, 8) + g, 0.025);
+    paint(jacket.front, (x, y, w, h) => {
+      if (x === 7 && y === 3) return tone(C.P, 3);                // Stift in der Brusttasche
+      if (x === 7 && y === 4) return lab(y, h, -18);
+      if (x === 0 && y === 4) return tone(C.V, 4);                // Namensschild
+      return (x <= 1 || x >= 6) ? ((x === 1 || x === 6) ? lab(y, h, -26) : lab(y, h)) : null;
+    });
+    ['right', 'left'].forEach(k => paint(jacket[k], (x, y, w, h) => lab(y, h)));
+    paint(jacket.back, (x, y, w, h) => (y >= 8 && (x === 3 || x === 4)) ? null : (O.hood === 'down' && y <= 2) ? fabric(2 - y) : lab(y, h, -4));
+    ARM_OV.forEach(([b]) => {
+      paint(b.top, () => tone(C.L, 4, 4, 0.025));
+      SIDES.forEach(k => paint(b[k], (x, y) => y <= 8 ? lab(y, 9, y === 8 ? -18 : 0) : null));
+    });
+    LEG_OV.forEach(([b, outer]) => {
+      paint(b[outer], (x, y) => y <= 7 ? (y === 7 ? lab(y, 8, -22) : lab(y, 8, -6)) : null);
+      paint(b.back, (x, y) => y <= 7 ? (y === 7 ? lab(y, 8, -22) : lab(y, 8, -6)) : null);
+      const fc = outer === 'right' ? 0 : 3;
+      paint(b.front, (x, y) => x === fc && y <= 7 ? lab(y, 8, -26) : null);
+    });
+  }
+
+  if (fem) {
+    if (hoodUp) paint(jacket.front, (x, y) => (x === 0 || x === 7) && y <= 4 ? (y === 4 ? tone(C.P, 3) : tone(C.V, 4, 8)) : (x === 1 || x === 6) && y <= 1 ? tone(C.V, 4, 4) : null); // Strähnen aus der Kapuze
+    else paint(jacket.back, (x, y) => {                           // Haare fallen über den Rücken
+      if (y < (O.hood === 'down' ? 4 : 0) || y > 7 || x === 0 || x === 7) return null;
+      if (y === 7) return (x === 2 || x === 5) ? femHair(x, -4) : null;          // Spitzen
+      return x === 2 ? tone(y % 2 ? C.P : C.V, 5) : femHair(x);
+    });
+  }
+
+  // =========================================================
+  // ARME – Basis
+  // =========================================================
+  const arm = (b, outer) => {
+    const sleeve = (y, h) => tone(pick(C.A, C.A, C.D), 5, vgrad(y, 9, 6));
+    const glove = () => tone(C.B, 3);
+    const f = isOuter => (x, y, w, h) => {
+      if (y >= 10) return (y === 11 && !isOuter && x % 2 === 0) ? tone(C.V, 4) : glove();
+      if (y === 9) return tone(C.D, 3, -2);                      // Bündchen
+      if (y === 3) return isOuter && (x === 1 || x === 2) ? tone(x === 1 ? C.P : C.V, 4) : C.K; // Riemen
+      return sleeve(y, h);
+    };
+    paint(b.top, () => tone(C.A, 5, 3));
+    paint(b.bottom, (x, y) => (x + y) % 3 === 0 ? tone(C.V, 4, -10) : glove());
+    ['front', 'back', 'right', 'left'].forEach(k => paint(b[k], f(k === outer)));
+  };
+  arm(box(40, 16, AW, 12, 4), 'right'); // rechter Arm
+  arm(box(32, 48, AW, 12, 4), 'left');  // linker Arm
+
+  // =========================================================
+  // BEINE – Basis
+  // =========================================================
+  const leg = (b, outer) => {
+    const pants = (y) => tone(pick(C.A, C.D, C.D), 5, vgrad(y, 9, 5));
+    const f = (face) => (x, y) => {
+      const isOuter = face === outer;
+      if (y === 11) return tone(rnd() < 0.25 ? C.M : C.P, 3);    // lila Sohlen-Zierlinie
+      if (y >= 9) return (face === 'front' && y === 9 && (x === 1 || x === 2)) ? tone(C.V, 4, -14) : tone(C.B, 3); // Boots + Schnürung
+      if (y === 2 && face !== 'back') return isOuter && x === 1 ? tone(C.V, 4) : C.K; // Hüftriemen
+      if (y === 6 && (isOuter || face === 'front')) return isOuter && x === 2 ? tone(C.D, 3, 6) : C.K; // Oberschenkelriemen
+      if (isOuter && y >= 3 && y <= 5 && x <= 2) return tone(C.D, 3, -3); // Cargo-Tasche
+      return pants(y);
+    };
+    paint(b.top, () => tone(C.D, 4));
+    paint(b.bottom, (x, y) => (x === 0 || y === 0 || x === 3 || y === 3) ? tone(C.V, 4) : tone(C.B, 2));
+    ['front', 'back', 'right', 'left'].forEach(k => paint(b[k], f(k)));
+  };
+  leg(box(0, 16, 4, 12, 4), 'right');  // rechtes Bein
+  leg(box(16, 48, 4, 12, 4), 'left');  // linkes Bein
+
+  // =========================================================
+  // "ghostproc"-Partikel – Overlays der Extremitäten
+  // =========================================================
+  const glitch = () => { const r = rnd(); return r < 0.45 ? C.P : r < 0.75 ? C.M : C.V; };
+  const particles = (b, outer, density) => {
+    // Außenseite: kurze, versetzte Code-Fragmente (1–2 px), zum Ende hin dichter
+    const [ox, oy, ow, oh] = b[outer];
+    const used = new Set();
+    for (let y = 0; y < oh; y++) {
+      const p = density * (0.4 + 0.9 * (y / (oh - 1)));
+      if (rnd() < p) {
+        const x = Math.floor(rnd() * ow);
+        const len = rnd() < 0.35 ? 2 : 1;
+        for (let k = 0; k < len && x + k < ow; k++) {
+          set(ox + x + k, oy + y, glitch());
+          used.add(y);
+        }
+      }
+    }
+    // Vorder-/Rückseite: nur die Spalte an der Außenkante, sehr sparsam
+    const edgeFront = outer === 'right' ? 0 : b.front[2] - 1;
+    const edgeBack = outer === 'right' ? b.back[2] - 1 : 0;
+    for (let y = 1; y < oh; y++) {
+      if (rnd() < density * 0.45) set(b.front[0] + edgeFront, b.front[1] + y, glitch());
+      if (rnd() < density * 0.45) set(b.back[0] + edgeBack, b.back[1] + y, glitch());
+    }
+  };
+  // Mantel: Schöße über den Beinen (Overlay), offen an der Vorderseite
+  if (O.outfit === 'coat') {
+    [[box(0, 32, 4, 12, 4), 'right'], [box(0, 48, 4, 12, 4), 'left']].forEach(([b, outer]) => {
+      paint(b[outer], (x, y, w, h) => y <= 7 ? (y === 7 ? tone(C.V, 4, -4) : coat(y, 8)) : null);
+      paint(b.back, (x, y) => y <= 7 ? (y === 7 ? tone(C.V, 4, -4) : coat(y, 8)) : null);
+      const fc = outer === 'right' ? 0 : 3;
+      paint(b.front, (x, y) => x === fc && y <= 7 ? tone(C.V, 4, -6) : null);
+    });
+  }
+  if (O.particles === 'drip') {   // Code-Tropfen: senkrechte Fäden, unten hell
+    const drip = (b, outer, n) => {
+      const [ox, oy, ow, oh] = b[outer];
+      for (let i = 0; i < n; i++) {
+        const x = Math.floor(rnd() * ow), y0 = Math.floor(rnd() * (oh - 3)), len = 2 + Math.floor(rnd() * 3);
+        for (let k = 0; k < len && y0 + k < oh; k++) set(ox + x, oy + y0 + k, k === len - 1 ? C.M : tone(k === 0 ? C.V : C.P, 3));
+      }
+      const fx = outer === 'right' ? b.front[0] : b.front[0] + b.front[2] - 1;
+      for (let y = 2; y < oh; y += 2 + Math.floor(rnd() * 4)) set(fx, b.front[1] + y, tone(pick(C.V, C.P), 3));
+    };
+    drip(box(40, 32, AW, 12, 4), 'right', 3); drip(box(48, 48, AW, 12, 4), 'left', 3);
+    drip(box(0, 32, 4, 12, 4), 'right', 2);  drip(box(0, 48, 4, 12, 4), 'left', 2);
+  }
+  const pOn = O.particles === 'dissolve';
+  const ad = pOn ? (opts.armDensity ?? 0.38) : 0, ld = pOn ? (opts.legDensity ?? 0.30) : 0;
+  particles(box(40, 32, AW, 12, 4), 'right', ad); // rechter Arm  Overlay
+  particles(box(48, 48, AW, 12, 4), 'left', ad);  // linker Arm   Overlay
+  particles(box(0, 32, 4, 12, 4), 'right', ld);  // rechtes Bein Overlay
+  particles(box(0, 48, 4, 12, 4), 'left', ld);   // linkes Bein  Overlay
+
+  // --- neue Partikel (v3). Dichte kommt vom selben Regler.
+  const LIMBS = ARM_OV.concat(LEG_OV);
+  const dens = opts.armDensity ?? 0.38;
+  if (O.particles === 'sparks') {                 // Funken: einzelne helle Pixel überall
+    LIMBS.forEach(([b]) => SIDES.forEach(k => paint(b[k], () => rnd() < dens * 0.14 ? (rnd() < 0.3 ? C.W : rnd() < 0.6 ? C.M : tone(C.P, 3)) : null)));
+  }
+  if (O.particles === 'rain') {                   // Matrix-Regen: lange Spalten mit Lücken, Kopf unten hell
+    LIMBS.forEach(([b]) => SIDES.forEach(k => {
+      const [ox, oy, ow, oh] = b[k];
+      for (let x = 0; x < ow; x++) {
+        if (rnd() > dens * 0.9) continue;
+        const len = 3 + Math.floor(rnd() * 6), y0 = Math.floor(rnd() * (oh - 2));
+        for (let i = 0; i < len && y0 + i < oh; i++) {
+          if (i < len - 1 && rnd() < 0.25) continue;
+          set(ox + x, oy + y0 + i, i === len - 1 ? C.M : tone(i < len / 2 ? C.V : C.P, 3));
+        }
+      }
+    }));
+  }
+  if (O.particles === 'flames') {                 // Neon-Flammen von Händen und Füßen aufwärts
+    LIMBS.forEach(([b]) => SIDES.forEach(k => {
+      const [ox, oy, ow, oh] = b[k];
+      for (let x = 0; x < ow; x++) {
+        const h = Math.floor(rnd() * (1 + dens * 9));
+        for (let i = 0; i < h; i++) set(ox + x, oy + oh - 1 - i, i === h - 1 ? tone(C.V, 4) : i < h / 2 ? C.M : tone(C.P, 3));
+        if (rnd() < dens * 0.35 && h + 2 < oh) set(ox + x, oy + oh - 2 - h - Math.floor(rnd() * 3), C.M); // Glut
+      }
+    }));
+  }
+  if (O.particles === 'scan') {                   // Scanlines: waagrechte Linien rund um die Glieder
+    LIMBS.forEach(([b]) => {
+      const ph = Math.floor(rnd() * 3);
+      SIDES.forEach(k => paint(b[k], (x, y) => (y + ph) % 3 === 0 && rnd() < 0.3 + dens * 0.6 ? (rnd() < 0.2 ? C.M : tone(C.P, 3)) : null));
+    });
+  }
+  if (O.particles === 'blocks') {                 // Datenblöcke: schwebende 2×2-Würfel
+    LIMBS.forEach(([b]) => {
+      const n = Math.round(1 + dens * 7);
+      for (let i = 0; i < n; i++) {
+        const [ox, oy, ow, oh] = b[SIDES[Math.floor(rnd() * 4)]];
+        const x = Math.floor(rnd() * (ow - 1)), y = Math.floor(rnd() * (oh - 1)), c = pick(C.P, C.M, C.V, C.P);
+        for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) set(ox + x + dx, oy + y + dy, tone(c, 3, dx + dy === 0 ? 30 : dx + dy === 2 ? -20 : 0));
+      }
+    });
+  }
+  if (O.particles === 'aura') {                   // Neon-Aura: leuchtende Kanten und Unterkante
+    LIMBS.forEach(([b]) => SIDES.forEach(k => paint(b[k], (x, y, w, h) => {
+      if (y === h - 1) return C.M;
+      if ((x === 0 || x === w - 1) && rnd() < 0.3 + dens * 0.7) return tone(y > h / 2 ? C.M : C.P, 3);
+      return null;
+    })));
+  }
+
+  // Optional: Glitch-Risse im Torso-Overlay (Seiten + Kanten von Vorder-/Rückseite)
+  if (opts.torsoGlitch) {
+    const j = box(16, 32, 8, 12, 4);
+    ['right', 'left'].forEach(k => {
+      const [ox, oy, ow, oh] = j[k];
+      for (let y = 2; y < oh; y++) if (rnd() < opts.torsoGlitch) set(ox + Math.floor(rnd() * ow), oy + y, glitch());
+    });
+    [j.front, j.back].forEach(([ox, oy, ow, oh]) => {
+      for (let y = 4; y < oh; y++) {
+        if (rnd() < opts.torsoGlitch * 0.5) set(ox, oy + y, glitch());
+        if (rnd() < opts.torsoGlitch * 0.5) set(ox + ow - 1, oy + y, glitch());
+      }
+    });
+  }
+
+  return px;
+}
+
+const PAL = {
+  neon:   { P:'#9D00FF', M:'#E000FF', V:'#510087' },
+  ice:    { P:'#00E5FF', M:'#9FFBFF', V:'#00546B', S:'#4F5A63', A:'#191C1F', D:'#111315' },
+  toxic:  { P:'#39FF14', M:'#C6FF00', V:'#0F5C00', S:'#535A50' },
+  kernel: { P:'#FF1744', M:'#FF7A45', V:'#6B0012', S:'#5E5257', A:'#1D1A1B', D:'#141213' },
+  mono:   { P:'#B8B8C4', M:'#FFFFFF', V:'#3E3E48', S:'#4A4950', A:'#18181A', D:'#101012' },
+  uv:     { P:'#6A00FF', M:'#B388FF', V:'#22005A' },
+  plasma: { P:'#FF00C8', M:'#00F0FF', V:'#3A0066' },
+  synth:  { P:'#FF2E97', M:'#FFD319', V:'#4A0E5C', S:'#584F60', A:'#1C1622', D:'#130F18' },
+  sakura: { P:'#FF4FA3', M:'#FFB3DA', V:'#6E1446', S:'#5E5258' },
+  blood:  { P:'#B0001E', M:'#FF3D3D', V:'#3D000A', S:'#4F4446', A:'#170F10', D:'#0E0909' },
+  ember:  { P:'#FF5722', M:'#FFAB40', V:'#5A1A00', S:'#5E5450' },
+  solar:  { P:'#FFB300', M:'#FFE57F', V:'#6B4500', S:'#5E584F', A:'#1C1A17', D:'#131210' },
+  gold:   { P:'#D4AF37', M:'#FFF1A8', V:'#4A3A00', S:'#5A554C', A:'#1B1915', D:'#121110' },
+  copper: { P:'#C46A2B', M:'#FFB58A', V:'#4A2410', S:'#5C524C' },
+  teal:   { P:'#1DE9B6', M:'#A7FFEB', V:'#00594A', S:'#4F5A58' },
+  holo:   { P:'#7CF7FF', M:'#FF9CF5', V:'#2B3A6B', S:'#566070', A:'#191B22', D:'#111318' },
+  cobalt: { P:'#2979FF', M:'#82B1FF', V:'#0D2470', S:'#505868', A:'#171A22', D:'#0F1218' },
+  navy:   { P:'#4FC3F7', M:'#E1F5FE', V:'#0A3A5C', S:'#525A6A', A:'#1A1F2E', D:'#11151F' },
+  light:  { P:'#7A00FF', M:'#E000FF', V:'#3B0066', S:'#8C8794', A:'#C9C7D1', D:'#B4B1BD', noise:0.4 }
+};
+// Namen: String = in beiden Sprachen gleich, sonst { de, en }
+const PAL_NAMES = { neon:{ de:'Neon-Lila', en:'Neon Purple' }, ice:'Ice Breach', toxic:'Toxic Daemon', kernel:'Kernel Panic', mono:'Mono Void',
+  uv:{ de:'Ultraviolett', en:'Ultraviolet' }, plasma:'Plasma (Pink/Cyan)', synth:'Synthwave', sakura:'Sakura Glitch', blood:'Blood Moon',
+  ember:'Ember', solar:'Solar Flare', gold:'Royal Gold', copper:'Copper Wire', teal:'Arctic Teal',
+  holo:{ de:'Hologramm', en:'Hologram' }, cobalt:'Cobalt', navy:'Midnight Navy',
+  light:{ de:'Light Mode (helle Kleidung)', en:'Light Mode (light clothing)' }, custom:{ de:'Eigene Palette', en:'Custom palette' } };
+const BASE_DEFAULTS = { A:'#1A1A1D', D:'#121214', S:'#57525F' };
+PAL.custom = Object.assign({}, BASE_DEFAULTS, PAL.neon);
+
+// Auswahl-Optionen: [Wert, Deutsch, Englisch]
+const OPTIONS = {
+  arms: [['classic','Breit (Classic, 4 px)','Wide (Classic, 4 px)'], ['slim','Schmal (Slim, 3 px)','Slim (3 px)']],
+  body: [['male','Männlich','Male'], ['female','Weiblich','Female']],
+  symbol: [['prompt','>_ Terminal','>_ Terminal'], ['ghost','Geist','Ghost'], ['skull','Totenkopf','Skull'], ['binary','10 (Binär)','10 (binary)'],
+    ['eye','Auge','Eye'], ['heart','Herz','Heart'], ['bolt','Blitz','Lightning bolt'], ['lambda','λ Lambda','λ Lambda'], ['hash','# Raute','# Hash'],
+    ['bug','Bug (Käfer)','Bug'], ['warning','Warnschild','Warning sign'], ['lock','Vorhängeschloss','Padlock'], ['moon','Sichelmond','Crescent moon'],
+    ['crown','Krone','Crown'], ['none','Kein Symbol','No symbol']],
+  mask: [['tech','Tech-Maske','Tech mask'], ['breather','Atemmaske','Breather'], ['glitch','Glitch-Maske','Glitch mask'],
+    ['gasmask','Gasmaske mit Filter','Gas mask with filter'], ['bandana','Bandana','Bandana'], ['grin','LED-Grinsen','LED grin'],
+    ['skull','Knochen-Kiefer','Bone jaw'], ['fangs','Reißzähne','Fangs'], ['censor','Pixel-Zensur','Pixel censor'],
+    ['stitch','Zugenähter Mund','Stitched mouth'], ['none','Ohne Maske','No mask']],
+  hood: [['deep','Tiefe Kapuze','Deep hood'], ['trim','Kapuze mit Neon-Rand','Hood with neon trim'], ['stripe','Kapuze mit Rennstreifen','Hood with racing stripe'],
+    ['circuit','Kapuze mit Leiterbahnen','Circuit-board hood'], ['ears','Kapuze mit Katzenohren','Hood with cat ears'], ['horns','Kapuze mit Hörnern','Hood with horns'],
+    ['down','Kapuze abgelegt','Hood down'], ['beanie','Strickmütze','Beanie'], ['none','Ohne (nur Haare)','None (hair only)']],
+  outfit: [['hoodie','Hoodie','Hoodie'], ['coat','Langer Mantel','Long coat'], ['harness','Hoodie + Harness','Hoodie + harness'],
+    ['vest','Tech-Weste','Tech vest'], ['armor','Cyber-Panzer','Cyber armor'], ['scarf','Hoodie + Schal','Hoodie + scarf'],
+    ['tracksuit','Trainingsanzug','Tracksuit'], ['labcoat','Laborkittel','Lab coat']],
+  eyes: [['solid','Weiß, starrend','White, staring'], ['tears','Mit Glitch-Tränen','With glitch tears'], ['neon','Neon-Glühen','Neon glow'],
+    ['red','Rot glühend','Glowing red'], ['iris','Mit Iris','With iris'], ['visor','Visier-Band','Visor band'],
+    ['glitch','Glitch (asymmetrisch)','Glitched (asymmetric)'], ['cyclops','Zyklop','Cyclops'], ['void','Leer (schwarz)','Void (black)']],
+  particles: [['dissolve','Auflösen','Dissolve'], ['drip','Code-Tropfen','Code drip'], ['rain','Matrix-Regen','Matrix rain'],
+    ['sparks','Funken','Sparks'], ['flames','Neon-Flammen','Neon flames'], ['scan','Scanlines','Scanlines'],
+    ['blocks','Datenblöcke','Data blocks'], ['aura','Neon-Aura','Neon aura'], ['none','Keine','None']]
+};
+
+const GHOSTPROC_VARIANTS = [
+  // --- Skins aus v1 (pixelgleich zu den gelieferten PNGs)
+  { id:'ghostproc-original', name:'Original', pal:'neon', opts:{ seed:0x60570C },
+    note:{ de:'Das Original: Neon-Lila, Tech-Maske, >_ Terminal.', en:'The original: neon purple, tech mask, >_ terminal.' } },
+  { id:'ghostproc-ice-breach', name:'Ice Breach', pal:'ice', opts:{ seed:0x1CEB4E },
+    note:{ de:'Eisiges Cyan, kühlere Haut.', en:'Icy cyan, cooler skin tone.' } },
+  { id:'ghostproc-toxic-daemon', name:'Toxic Daemon', pal:'toxic', opts:{ seed:0x70C1C0, armDensity:0.42 },
+    note:{ de:'Giftgrüner Terminal-Look.', en:'Toxic green terminal look.' } },
+  { id:'ghostproc-kernel-panic', name:'Kernel Panic', pal:'kernel', opts:{ seed:0xBADF00D },
+    note:{ de:'Alarmrot mit Orange-Glitch.', en:'Alarm red with orange glitches.' } },
+  { id:'ghostproc-glitch-overload', name:'Glitch Overload', pal:'neon', opts:{ seed:0xDEADC0DE, armDensity:0.7, legDensity:0.6, torsoGlitch:0.35 },
+    note:{ de:'Der Skin zerfällt sichtbar, auch am Torso.', en:'The skin visibly falls apart, torso included.' } },
+  { id:'ghostproc-mono-void', name:'Mono Void', pal:'mono', opts:{ seed:0x0000F00D },
+    note:{ de:'Nur Silber und Weiß.', en:'Nothing but silver and white.' } },
+  // --- Design-Varianten aus v2
+  { id:'ghostproc-spectre-coat', name:'Spectre Coat', pal:'neon', opts:{ seed:0x5BEC7E, outfit:'coat', symbol:'ghost' },
+    note:{ de:'Langer Mantel mit Schößen über den Beinen, Geist-Logo auf der Brust.', en:'Long coat with tails over the legs, ghost logo on the chest.' } },
+  { id:'ghostproc-phantom-trace', name:'Phantom Trace', pal:'neon', opts:{ seed:0x7EACE5, hood:'trim', eyes:'tears', particles:'drip' },
+    note:{ de:'Neon-Kapuzenrand, Glitch-Tränen, Code tropft von Armen und Beinen.', en:'Neon hood trim, glitch tears, code dripping from arms and legs.' } },
+  { id:'ghostproc-code-rain', name:'Code Rain', pal:'ice', opts:{ seed:0xC0DE4A, symbol:'binary', hood:'trim', particles:'drip' },
+    note:{ de:'Binär-Symbol „10", Neon-Kapuzenrand und tropfender Code in Cyan.', en:'Binary "10" symbol, neon hood trim and dripping code in cyan.' } },
+  { id:'ghostproc-cold-boot', name:'Cold Boot', pal:'ice', opts:{ seed:0xC01DB0, hood:'down', mask:'breather', symbol:'eye' },
+    note:{ de:'Kapuze abgelegt, Atemmaske mit Filter-LEDs.', en:'Hood down, breather mask with filter LEDs.' } },
+  { id:'ghostproc-skull-daemon', name:'Skull Daemon', pal:'toxic', opts:{ seed:0x5C011D, symbol:'skull', mask:'breather', outfit:'harness' },
+    note:{ de:'Totenkopf mit weißen Augen, Atemmaske, Harness-Gurte.', en:'Skull with white eyes, breather mask, harness straps.' } },
+  { id:'ghostproc-root-access', name:'Root Access', pal:'toxic', opts:{ seed:0x2007AC, outfit:'coat', symbol:'binary', armDensity:0.55, legDensity:0.4 },
+    note:{ de:'Grüner Mantel-Hacker mit Binär-Symbol und starkem Zerfall.', en:'Green coat hacker with binary symbol and heavy decay.' } },
+  { id:'ghostproc-blackout', name:'Blackout Protocol', pal:'kernel', opts:{ seed:0xB1AC07, mask:'glitch', outfit:'harness', armDensity:0.6, legDensity:0.5, torsoGlitch:0.3 },
+    note:{ de:'Glitch-Maske, Harness, Zerfall bis in den Torso.', en:'Glitch mask, harness, decay reaching into the torso.' } },
+  { id:'ghostproc-crimson-specter', name:'Crimson Specter', pal:'kernel', opts:{ seed:0xC215E7, outfit:'coat', hood:'trim', symbol:'ghost', eyes:'tears' },
+    note:{ de:'Roter Mantel, Neon-Kapuzenrand, Geist-Logo, Glitch-Tränen.', en:'Red coat, neon hood trim, ghost logo, glitch tears.' } },
+  { id:'ghostproc-unmasked', name:'Unmasked', pal:'mono', opts:{ seed:0x0A5CED, mask:'none', hood:'down', eyes:'tears', symbol:'ghost' },
+    note:{ de:'Ohne Maske und ohne Kapuze – das wahre Gesicht des Geists.', en:'No mask, no hood – the ghost\'s true face.' } },
+  { id:'ghostproc-null-pointer', name:'Null Pointer', pal:'mono', opts:{ seed:0x0D11F7, symbol:'skull', mask:'glitch', particles:'drip' },
+    note:{ de:'Silberner Totenkopf, Glitch-Maske, tropfender Code.', en:'Silver skull, glitch mask, dripping code.' } },
+  // --- neu in v3
+  { id:'ghostproc-matrix-ghost', name:'Matrix Ghost', pal:'toxic', opts:{ seed:0x3A7121, hood:'circuit', mask:'censor', eyes:'neon', symbol:'hash', particles:'rain', armDensity:0.5 },
+    note:{ de:'Leiterbahn-Kapuze, Pixel-Zensur und grüner Matrix-Regen.', en:'Circuit hood, pixel censor and green matrix rain.' } },
+  { id:'ghostproc-neon-oni', name:'Neon Oni', pal:'blood', opts:{ seed:0x0A1DE7, hood:'horns', mask:'fangs', eyes:'red', outfit:'armor', symbol:'warning', particles:'flames', armDensity:0.45 },
+    note:{ de:'Hörner, Reißzähne, Cyber-Panzer und Flammen an Händen und Füßen.', en:'Horns, fangs, cyber armor and flames at hands and feet.' } },
+  { id:'ghostproc-lab-rat', name:'Lab Rat', pal:'teal', opts:{ seed:0x1AB4A7, hood:'down', mask:'gasmask', eyes:'iris', outfit:'labcoat', symbol:'bug', particles:'sparks', armDensity:0.5 },
+    note:{ de:'Laborkittel mit Stift in der Tasche, Gasmaske, Bug-Symbol.', en:'Lab coat with a pen in the pocket, gas mask, bug symbol.' } },
+  { id:'ghostproc-synth-rider', name:'Synth Rider', pal:'synth', opts:{ seed:0x5F7A1D, hood:'stripe', mask:'none', eyes:'visor', outfit:'tracksuit', symbol:'bolt', particles:'scan', armDensity:0.5 },
+    note:{ de:'Visier-Band, Trainingsanzug, Blitz und Scanlines in Pink und Gelb.', en:'Visor band, tracksuit, lightning bolt and scanlines in pink and yellow.' } },
+  { id:'ghostproc-cyber-cat', name:'Cyber Cat', pal:'sakura', opts:{ seed:0xCA7CA7, hood:'ears', mask:'grin', eyes:'neon', outfit:'scarf', symbol:'heart', particles:'sparks', armDensity:0.45 },
+    note:{ de:'Katzenohren, LED-Grinsen, Schal und Herz.', en:'Cat ears, LED grin, scarf and a heart.' } },
+  { id:'ghostproc-frost-lambda', name:'Frost Lambda', pal:'ice', opts:{ seed:0xF2057A, hood:'trim', mask:'bandana', eyes:'solid', outfit:'vest', symbol:'lambda', particles:'blocks', armDensity:0.5 },
+    note:{ de:'Tech-Weste mit Reflexstreifen, Bandana, schwebende Datenblöcke.', en:'Tech vest with reflective stripe, bandana, floating data blocks.' } },
+  { id:'ghostproc-bone-king', name:'Bone King', pal:'gold', opts:{ seed:0xB0E1C6, hood:'deep', mask:'skull', eyes:'cyclops', outfit:'armor', symbol:'crown', particles:'aura', armDensity:0.4 },
+    note:{ de:'Goldene Krone, Knochen-Kiefer, Zyklopen-Auge, Neon-Aura.', en:'Golden crown, bone jaw, cyclops eye, neon aura.' } },
+  { id:'ghostproc-midnight-lock', name:'Midnight Lock', pal:'navy', opts:{ seed:0x10C4ED, hood:'beanie', mask:'tech', eyes:'iris', outfit:'scarf', symbol:'lock', particles:'rain', armDensity:0.35 },
+    note:{ de:'Strickmütze, Schal und Vorhängeschloss – Hacker im Winter.', en:'Beanie, scarf and padlock – a hacker in winter.' } },
+  { id:'ghostproc-stitched-moon', name:'Stitched Moon', pal:'uv', opts:{ seed:0x5717C4, hood:'none', mask:'stitch', eyes:'void', symbol:'moon', particles:'drip' },
+    note:{ de:'Leere Augen, zugenähter Mund, Sichelmond. Gruselig.', en:'Void eyes, stitched mouth, crescent moon. Creepy.' } },
+  { id:'ghostproc-ember-fault', name:'Ember Fault', pal:'ember', opts:{ seed:0xE3BE2F, hood:'trim', mask:'glitch', eyes:'glitch', outfit:'harness', symbol:'warning', particles:'flames', armDensity:0.55, torsoGlitch:0.2 },
+    note:{ de:'Glitch-Augen, Warnschild, Flammen und Risse im Torso.', en:'Glitched eyes, warning sign, flames and cracks in the torso.' } },
+  { id:'ghostproc-holo-hacker', name:'Holo Hacker', pal:'holo', opts:{ seed:0x401011, hood:'circuit', mask:'breather', eyes:'visor', outfit:'vest', symbol:'prompt', particles:'aura', armDensity:0.5 },
+    note:{ de:'Hologramm-Farben, Visier, Tech-Weste und leuchtende Kanten.', en:'Hologram colors, visor, tech vest and glowing edges.' } },
+  { id:'ghostproc-cobalt-runner', name:'Cobalt Runner', pal:'cobalt', opts:{ seed:0xC0BA17, hood:'beanie', mask:'bandana', eyes:'iris', outfit:'tracksuit', symbol:'binary', particles:'scan', armDensity:0.4 },
+    note:{ de:'Blauer Trainingsanzug, Mütze, Bandana und Scanlines.', en:'Blue tracksuit, beanie, bandana and scanlines.' } },
+  // --- neu in v4: schmale Arme + weibliche Figur
+  { id:'ghostproc-glitch-queen', name:'Glitch Queen', pal:'plasma', fresh:true, opts:{ seed:0x6017C4, arms:'slim', body:'female', hood:'trim', mask:'none', eyes:'neon', outfit:'coat', symbol:'crown', particles:'sparks', armDensity:0.45 },
+    note:{ de:'Schmale Arme, Strähnen aus der Kapuze, Mantel und Krone in Pink und Cyan.', en:'Slim arms, hair strands from the hood, coat and crown in pink and cyan.' } },
+  { id:'ghostproc-kernel-witch', name:'Kernel Witch', pal:'kernel', fresh:true, opts:{ seed:0x3A17C4, arms:'slim', body:'female', hood:'down', mask:'breather', eyes:'tears', outfit:'harness', symbol:'moon', particles:'dissolve' },
+    note:{ de:'Kapuze abgelegt, lange Haare, Atemmaske und Sichelmond.', en:'Hood down, long hair, breather mask and crescent moon.' } },
+  { id:'ghostproc-static-nova', name:'Static Nova', pal:'holo', fresh:true, opts:{ seed:0x57A71C, arms:'slim', body:'female', hood:'none', mask:'none', eyes:'iris', outfit:'scarf', symbol:'bolt', particles:'aura', armDensity:0.45 },
+    note:{ de:'Offene lange Haare, Schal, Blitz und leuchtende Kanten.', en:'Long open hair, scarf, lightning bolt and glowing edges.' } },
+  { id:'ghostproc-byte-fox', name:'Byte Fox', pal:'ember', fresh:true, opts:{ seed:0xB17EF0, arms:'slim', body:'female', hood:'ears', mask:'bandana', eyes:'glitch', outfit:'vest', symbol:'hash', particles:'flames', armDensity:0.45 },
+    note:{ de:'Ohren-Kapuze, Bandana, Tech-Weste und Flammen.', en:'Eared hood, bandana, tech vest and flames.' } }
+];
+GHOSTPROC_VARIANTS.forEach(v => v.opts.colors = PAL[v.pal]);
+if (typeof module !== 'undefined') module.exports = { buildGhostprocSkin, GHOSTPROC_VARIANTS, PAL, PAL_NAMES, OPTIONS };
+
+// ---------------- Ansichten
+const FRONT = [[8,8,8,8,4,0],[40,8,8,8,4,0],[20,20,8,12,4,8],[20,36,8,12,4,8],
+  [44,20,4,12,0,8],[44,36,4,12,0,8],[36,52,4,12,12,8],[52,52,4,12,12,8],
+  [4,20,4,12,4,20],[4,36,4,12,4,20],[20,52,4,12,8,20],[4,52,4,12,8,20]];
+const BACK = [[24,8,8,8,4,0],[56,8,8,8,4,0],[32,20,8,12,4,8],[32,36,8,12,4,8],
+  [52,20,4,12,12,8],[52,36,4,12,12,8],[44,52,4,12,0,8],[60,52,4,12,0,8],
+  [12,20,4,12,8,20],[12,36,4,12,8,20],[28,52,4,12,4,20],[12,52,4,12,4,20]];
+const RIGHT = [[0,8,8,8,0,0],[32,8,8,8,0,0],[40,20,4,12,2,8],[40,36,4,12,2,8],[0,20,4,12,2,20],[0,36,4,12,2,20]];
+const LEFT = [[16,8,8,8,0,0],[48,8,8,8,0,0],[40,52,4,12,2,8],[56,52,4,12,2,8],[24,52,4,12,2,20],[8,52,4,12,2,20]];
+// Schmale Arme (3 px): andere Quellpositionen, Arme rücken 1 px an den Torso
+const SLIM = {
+  FRONT: FRONT.slice(0, 4).concat([[44,20,3,12,1,8],[44,36,3,12,1,8],[36,52,3,12,12,8],[52,52,3,12,12,8]], FRONT.slice(8)),
+  BACK: BACK.slice(0, 4).concat([[51,20,3,12,12,8],[51,36,3,12,12,8],[43,52,3,12,1,8],[59,52,3,12,1,8]], BACK.slice(8)),
+  RIGHT: RIGHT,
+  LEFT: LEFT.slice(0, 2).concat([[39,52,4,12,2,8],[55,52,4,12,2,8]], LEFT.slice(4))
+};
+const WIDE = { FRONT, BACK, RIGHT, LEFT };
+const viewsFor = arms => arms === 'slim' ? SLIM : WIDE;
+const OVERLAY = [[32,0,32,16],[0,32,56,16],[0,48,16,16],[48,48,16,16]];
+
+// ---------------- Sprache / Language
+const I18N = {
+  de: {
+    title: 'ghostproc – Skin-Studio (Minecraft Java, 64×64 Classic & Slim)',
+    sub: 'Alle ghostproc-Skins an einem Ort, plus ein Editor, in dem du Figur, Kapuze, Maske, Augen, Brust-Symbol, Outfit, Partikel und Palette frei kombinierst. Jede Datei ist ein 64×64-Skin für die Java Edition, wahlweise mit breiten (Classic) oder schmalen Armen (Slim).',
+    front: 'Vorne', back: 'Hinten', right: 'Rechts', left: 'Links',
+    texCap: 'Textur 64×64 (4-fach)', showOverlay: 'Overlay-Ebene zeigen',
+    preset: 'Vorlage', palette: 'Palette', mixPal: 'Eigene Palette mischen',
+    cAccent: 'Akzent', cHigh: 'Highlight', cShadow: 'Schatten-Akzent', cFabric: 'Stoff', cFabricD: 'Stoff dunkel', cSkin: 'Haut',
+    custNote: 'Startet mit der aktuell gewählten Palette. Weiße Augen und schwarzer Kapuzenschatten bleiben immer fest.',
+    arms: 'Modell (Arme)', body: 'Figur', galArms: 'Modell:', galBody: 'Figur:', asPreset: 'wie Vorlage',
+    symbol: 'Brust-Symbol', mask: 'Maske', hood: 'Kapuze / Mütze', outfit: 'Outfit', eyes: 'Augen', particles: 'Partikel',
+    density: 'Partikeldichte', torso: 'Torso-Glitch', reroll: 'Würfeln', rerollTitle: 'Neuer Zufalls-Seed',
+    fname: 'Dateiname', savePng: 'PNG speichern', randAll: 'Alles zufällig',
+    seedNote: 'Gleicher Seed + gleiche Einstellungen = pixelgleicher Skin. „Würfeln" verteilt Partikel und Rauschen neu, „Alles zufällig" mischt auch Teile und Palette.',
+    custom: '— eigene Kombination —',
+    allSkins: 'Alle Skins', galShow: 'Galerie anzeigen in:', galOrig: 'Original-Paletten',
+    openEditor: 'Im Editor öffnen', fresh: 'neu',
+    howTitle: 'Skin in Minecraft verwenden',
+    how1: 'Skin im Editor zusammenstellen oder in der Galerie aussuchen und „PNG speichern" klicken.',
+    how2: 'Minecraft Launcher öffnen, Minecraft: Java Edition wählen und den Reiter „Skins" öffnen.',
+    how3: 'Neuen Skin anlegen, die PNG-Datei auswählen und das passende Spielermodell einstellen: „Klassisch" für breite Arme, „Schlank" für schmale Arme. Ein falsches Modell zeigt Lücken oder abgeschnittene Arme.',
+    disclaimer: 'Kein offizielles Minecraft-Produkt. Nicht von Mojang oder Microsoft genehmigt oder mit ihnen verbunden.'
+  },
+  en: {
+    title: 'ghostproc – Skin Studio (Minecraft Java, 64×64 Classic & Slim)',
+    sub: 'All ghostproc skins in one place, plus an editor where you freely combine body, hood, mask, eyes, chest symbol, outfit, particles and palette. Every file is a 64×64 skin for Java Edition, with either wide (Classic) or slim arms.',
+    front: 'Front', back: 'Back', right: 'Right', left: 'Left',
+    texCap: 'Texture 64×64 (4×)', showOverlay: 'Show overlay layer',
+    preset: 'Preset', palette: 'Palette', mixPal: 'Mix your own palette',
+    cAccent: 'Accent', cHigh: 'Highlight', cShadow: 'Shadow accent', cFabric: 'Fabric', cFabricD: 'Fabric dark', cSkin: 'Skin',
+    custNote: 'Starts from the palette currently selected. White eyes and the black hood shadow always stay fixed.',
+    arms: 'Model (arms)', body: 'Body', galArms: 'Model:', galBody: 'Body:', asPreset: 'as preset',
+    symbol: 'Chest symbol', mask: 'Mask', hood: 'Hood / headwear', outfit: 'Outfit', eyes: 'Eyes', particles: 'Particles',
+    density: 'Particle density', torso: 'Torso glitch', reroll: 'Reroll', rerollTitle: 'New random seed',
+    fname: 'File name', savePng: 'Save PNG', randAll: 'Randomize all',
+    seedNote: 'Same seed + same settings = pixel-identical skin. "Reroll" redistributes particles and noise, "Randomize all" also shuffles parts and palette.',
+    custom: '— custom combination —',
+    allSkins: 'All skins', galShow: 'Show gallery in:', galOrig: 'Original palettes',
+    openEditor: 'Open in editor', fresh: 'new',
+    howTitle: 'Using the skin in Minecraft',
+    how1: 'Build a skin in the editor or pick one from the gallery and click "Save PNG".',
+    how2: 'Open the Minecraft Launcher, select Minecraft: Java Edition and open the "Skins" tab.',
+    how3: 'Add a new skin, choose the PNG file and set the matching player model: "Classic" for wide arms, "Slim" for slim arms. The wrong model shows gaps or cut-off arms.',
+    disclaimer: 'Not an official Minecraft product. Not approved by or associated with Mojang or Microsoft.'
+  }
+};
+const pickLang = () => {
+  const q = new URLSearchParams(location.search).get('lang');
+  if (q === 'de' || q === 'en') return q;
+  try { const s = localStorage.getItem('ghostproc-lang'); if (s === 'de' || s === 'en') return s; } catch (e) {}
+  return (navigator.languages || [navigator.language || 'en']).some(l => /^de/i.test(l)) ? 'de' : 'en';
+};
+let lang = pickLang();
+const T = k => I18N[lang][k];
+const L = v => typeof v === 'string' ? v : v[lang];
+const palName = pid => L(PAL_NAMES[pid]);
+
+const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
+const compose = (t, skin, parts) => { const x = t.getContext('2d'); x.imageSmoothingEnabled = false; x.clearRect(0, 0, t.width, t.height);
+  parts.forEach(([sx,sy,w,h,dx,dy]) => x.drawImage(skin, sx,sy,w,h, dx,dy,w,h)); };
+const renderSkin = (opts) => { const c = mk(64, 64); c.getContext('2d').putImageData(new ImageData(buildGhostprocSkin(opts), 64, 64), 0, 0); return c; };
+const download = (canvas, name) => { const a = document.createElement('a'); a.download = name + '.png'; a.href = canvas.toDataURL('image/png'); a.click(); };
+const hexSeed = n => '0x' + (n >>> 0).toString(16).toUpperCase();
+const parseSeed = s => { const n = parseInt(String(s).trim(), /^0x/i.test(String(s).trim()) ? 16 : 10); return Number.isFinite(n) ? n >>> 0 : 0; };
+
+// ---------------- Editor
+const $ = id => document.getElementById(id);
+const FIELDS = ['arms', 'body', 'symbol', 'mask', 'hood', 'outfit', 'eyes', 'particles'];
+let state = {};
+let editorSkin = null;
+
+// Optionen der Auswahllisten (neu) beschriften, Werte bleiben erhalten
+function fillSelects() {
+  FIELDS.forEach(f => {
+    const sel = $(f), cur = sel.value;
+    sel.innerHTML = '';
+    OPTIONS[f].forEach(([v, de, en]) => { const o = document.createElement('option'); o.value = v; o.textContent = lang === 'de' ? de : en; sel.append(o); });
+    if (cur) sel.value = cur;
+  });
+  const pv = $('preset').value;
+  $('preset').innerHTML = '';
+  GHOSTPROC_VARIANTS.forEach(v => { const o = document.createElement('option'); o.value = v.id; o.textContent = v.name; $('preset').append(o); });
+  const c = document.createElement('option'); c.value = ''; c.textContent = T('custom'); c.disabled = true; $('preset').append(c);
+  $('preset').value = pv;
+  const gv = $('galPal').value;
+  $('galPal').innerHTML = '';
+  [['', T('galOrig')]].concat(Object.keys(PAL).filter(k => k !== 'custom').map(k => [k, palName(k)]))
+    .forEach(([v, t]) => { const o = document.createElement('option'); o.value = v; o.textContent = t; $('galPal').append(o); });
+  $('galPal').value = gv;
+  ['galArms', 'galBody'].forEach(id => {
+    const sel = $(id), cur = sel.value, f = id === 'galArms' ? 'arms' : 'body';
+    sel.innerHTML = '';
+    [['', T('asPreset'), T('asPreset')]].concat(OPTIONS[f]).forEach(([v, de, en]) => { const o = document.createElement('option'); o.value = v; o.textContent = lang === 'de' ? de : en; sel.append(o); });
+    sel.value = cur;
+  });
+}
+function applyLang(l) {
+  lang = l;
+  try { localStorage.setItem('ghostproc-lang', l); } catch (e) {}
+  document.documentElement.lang = l;
+  document.title = T('title');
+  document.querySelectorAll('[data-i18n]').forEach(el => el.textContent = T(el.dataset.i18n));
+  document.querySelectorAll('[data-i18n-title]').forEach(el => el.title = T(el.dataset.i18nTitle));
+  document.querySelectorAll('.lang button').forEach(b => b.setAttribute('aria-pressed', b.dataset.lang === l));
+  document.querySelectorAll('#pals .pal').forEach(b => { b.title = palName(b.dataset.pal); b.setAttribute('aria-label', palName(b.dataset.pal)); });
+  fillSelects();
+  if (state.pal) $('palName').textContent = palName(state.pal);
+  renderGallery();
+}
+
+function stateToOpts() {
+  const o = { seed: parseSeed(state.seed), colors: PAL[state.pal], armDensity: +state.armD, legDensity: +state.legD };
+  FIELDS.forEach(f => o[f] = state[f]);
+  if (+state.torso > 0) o.torsoGlitch = +state.torso;
+  return o;
+}
+function renderEditor() {
+  editorSkin = renderSkin(stateToOpts());
+  const V = viewsFor(state.arms);
+  compose($('vFront'), editorSkin, V.FRONT); compose($('vBack'), editorSkin, V.BACK);
+  compose($('vRight'), editorSkin, V.RIGHT); compose($('vLeft'), editorSkin, V.LEFT);
+  const t = $('tex').getContext('2d'); t.clearRect(0, 0, 64, 64); t.drawImage(editorSkin, 0, 0);
+  if (!$('ovT').checked) OVERLAY.forEach(([a, b, w, h]) => t.clearRect(a, b, w, h));
+  document.documentElement.style.setProperty('--acc', PAL[state.pal].P);
+  document.querySelectorAll('#pals .pal').forEach(b => b.setAttribute('aria-pressed', b.dataset.pal === state.pal));
+  $('palName').textContent = palName(state.pal);
+}
+function syncControls() {
+  FIELDS.forEach(f => $(f).value = state[f]);
+  $('armD').value = state.armD; $('torso').value = state.torso; $('seed').value = state.seed;
+}
+// Dateinamen-Anhang für Abweichungen von der Vorlage (Palette, Modell, Figur)
+const suffix = (v, ov) => (ov.pal && ov.pal !== v.pal ? '_' + ov.pal : '')
+  + (ov.arms && ov.arms !== (v.opts.arms || 'classic') ? '_' + ov.arms : '')
+  + (ov.body && ov.body !== (v.opts.body || 'male') ? '_' + ov.body : '');
+// Lädt eine Vorlage – das Ergebnis ist pixelgleich zur Galerie-Version
+function loadPreset(v, ov = {}) {
+  const o = v.opts;
+  state = { pal: ov.pal || v.pal, seed: hexSeed(o.seed), armD: o.armDensity ?? 0.38, legD: o.legDensity ?? 0.30, torso: o.torsoGlitch ?? 0,
+            arms: ov.arms || o.arms || 'classic', body: ov.body || o.body || 'male',
+            symbol: o.symbol || 'prompt', mask: o.mask || 'tech', hood: o.hood || 'deep',
+            outfit: o.outfit || 'hoodie', eyes: o.eyes || 'solid', particles: o.particles || 'dissolve' };
+  syncControls();
+  $('fname').value = v.id + suffix(v, ov);
+  $('preset').value = v.id;
+  renderEditor();
+}
+function changed() {
+  $('preset').value = '';
+  if (!/-custom$/.test($('fname').value)) $('fname').value += '-custom';
+  renderEditor();
+}
+
+$('preset').onchange = () => loadPreset(GHOSTPROC_VARIANTS.find(v => v.id === $('preset').value));
+const full = pid => Object.assign({}, BASE_DEFAULTS, PAL[pid]);
+const syncCustomInputs = () => document.querySelectorAll('.cgrid input').forEach(i => i.value = PAL.custom[i.dataset.k]);
+Object.keys(PAL).forEach(pid => {
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'pal' + (pid === 'custom' ? ' custom' : ''); b.dataset.pal = pid;
+  if (pid !== 'custom') { b.style.setProperty('--a', PAL[pid].P); b.style.setProperty('--b', PAL[pid].V); }
+  b.onclick = () => {
+    if (pid === 'custom') { if (state.pal !== 'custom') { PAL.custom = full(state.pal); syncCustomInputs(); } $('custBox').open = true; }
+    state.pal = pid; changed();
+  };
+  $('pals').append(b);
+});
+$('custBox').addEventListener('toggle', () => { if ($('custBox').open && state.pal !== 'custom') { PAL.custom = full(state.pal); syncCustomInputs(); } });
+document.querySelectorAll('.cgrid input').forEach(i => i.oninput = () => {
+  if (state.pal !== 'custom') PAL.custom = full(state.pal);
+  PAL.custom[i.dataset.k] = i.value.toUpperCase();
+  state.pal = 'custom'; changed();
+});
+syncCustomInputs();
+FIELDS.forEach(f => $(f).onchange = () => { state[f] = $(f).value; changed(); });
+$('armD').oninput = () => { state.armD = $('armD').value; state.legD = (state.armD * 0.8).toFixed(3); changed(); };
+$('torso').oninput = () => { state.torso = $('torso').value; changed(); };
+$('seed').onchange = () => { state.seed = $('seed').value; changed(); };
+$('reroll').onclick = () => { state.seed = hexSeed(Math.floor(Math.random() * 0xFFFFFFFF)); $('seed').value = state.seed; changed(); };
+$('randAll').onclick = () => {
+  const any = a => a[Math.floor(Math.random() * a.length)];
+  FIELDS.forEach(f => state[f] = any(OPTIONS[f])[0]);
+  state.pal = any(Object.keys(PAL).filter(k => k !== 'custom'));
+  state.seed = hexSeed(Math.floor(Math.random() * 0xFFFFFFFF));
+  state.armD = (0.25 + Math.random() * 0.4).toFixed(2); state.legD = (state.armD * 0.8).toFixed(3);
+  state.torso = Math.random() < 0.25 ? (Math.random() * 0.3).toFixed(2) : 0;
+  syncControls();
+  $('fname').value = 'ghostproc-' + state.seed.slice(2).toLowerCase();
+  $('preset').value = '';
+  renderEditor();
+};
+$('ovT').onchange = renderEditor;
+$('dl').onclick = () => download(editorSkin, ($('fname').value || 'ghostproc').replace(/[^\w.-]+/g, '_'));
+document.querySelectorAll('.lang button').forEach(b => b.onclick = () => applyLang(b.dataset.lang));
+
+// ---------------- Galerie
+function renderGallery() {
+  const gp = $('galPal').value, ov = { pal: gp, arms: $('galArms').value, body: $('galBody').value };
+  $('cards').innerHTML = '';
+  GHOSTPROC_VARIANTS.forEach(v => {
+    const opts = Object.assign({}, v.opts, gp ? { colors: PAL[gp] } : {}, ov.arms ? { arms: ov.arms } : {}, ov.body ? { body: ov.body } : {});
+    const name = v.id + suffix(v, ov);
+    const skin = renderSkin(opts);
+    const card = document.createElement('article'); card.className = 'card';
+    card.style.setProperty('--cacc', opts.colors.P);
+    card.innerHTML = `<h3></h3><p></p><div class="views"></div>
+      <div class="row"><button class="edit" type="button"></button><button class="dl" type="button"></button></div>`;
+    card.querySelector('h3').textContent = v.name;
+    if (v.fresh) { const t = document.createElement('span'); t.className = 'tag'; t.textContent = T('fresh'); card.querySelector('h3').append(t); }
+    card.querySelector('p').textContent = L(v.note);
+    card.querySelector('.edit').textContent = T('openEditor');
+    card.querySelector('.dl').textContent = T('savePng');
+    const f = mk(16, 32), r = mk(8, 32);
+    const V = viewsFor(opts.arms);
+    compose(f, skin, V.FRONT); compose(r, skin, V.RIGHT);
+    f.style.width = (16 * 150 / 32) + 'px'; r.style.width = (8 * 150 / 32) + 'px';
+    f.setAttribute('role', 'img'); f.setAttribute('aria-label', v.name);
+    card.querySelector('.views').append(f, r);
+    card.querySelector('.edit').onclick = () => { loadPreset(v, ov); $('studio').scrollIntoView({ behavior: 'smooth' }); };
+    card.querySelector('.dl').onclick = () => download(skin, name);
+    $('cards').append(card);
+  });
+}
+$('galPal').onchange = $('galArms').onchange = $('galBody').onchange = renderGallery;
+document.querySelectorAll('.stage canvas.v').forEach(c => c.style.width = (c.width * 256 / 32) + 'px');
+applyLang(lang);
+loadPreset(GHOSTPROC_VARIANTS[0]);
+</script>
+</body>
+</html>
